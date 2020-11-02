@@ -98,7 +98,7 @@ func main() {
 		},
 		cli.StringFlag{
 			Name:  "remoteaddr, r",
-			Value: "127.0.0.1:12980",
+			Value: "193.167.100.100:12980",
 			Usage: "kcp server address",
 		},
 		cli.StringFlag{
