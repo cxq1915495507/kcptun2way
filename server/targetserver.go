@@ -8,7 +8,6 @@ import (
 
 	//kcp "kcp-go"
 	"net"
-	"os"
 )
 
 
@@ -77,24 +76,19 @@ func targetserver()  {
 	}
 
 	//4.从buf中提取文件名
-	fileName := string(buf[:n])
 
-	//5.回写给发送端ok
+	message := string(buf[:n])
+
+	if n > 0 {
+		fmt.Println(message)
+	}	//5.回写给发送端ok
 	conn.Write([]byte("ok"))
 
 	//6.获取文件内容
-	recivefile(conn,fileName)
+	recivefile(conn)
 }
 
-func recivefile(conn net.Conn,fileName string)  {
-
-	//6.1按照文件名创建新文件
-	f,err := os.Create(fileName)
-	if err != nil{
-		fmt.Println("os.Create err:",err)
-		return
-	}
-	defer f.Close()
+func recivefile(conn net.Conn)  {
 
 	//6.2从网络socket中读数据，写入本地文件中
 	buf := make([]byte,4096)
@@ -108,7 +102,7 @@ func recivefile(conn net.Conn,fileName string)  {
 		}
 
 		//将buf中的数据写入到本地文件
-		f.Write(buf[:n])
+		conn.Write(buf[:n])
 	}
 
 }
