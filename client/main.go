@@ -93,7 +93,7 @@ func main() {
 	myApp.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "localaddr,l",
-			Value: "127.0.0.1:8088",
+			Value: "localhost:8088",
 			Usage: "local listen address",
 		},
 		cli.StringFlag{
