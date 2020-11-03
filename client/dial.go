@@ -20,7 +20,7 @@ import (
 )
 
 func dial(config *Config) (*net.UDPConn, uint32,error) {
-
+        fmt.Printf("client dial")
 	udpaddr, err := net.ResolveUDPAddr("udp", config.RemoteAddr)
 	if err != nil {
 		return nil,0, err
@@ -63,7 +63,7 @@ func dial2()  {
 
 
 	//4.主动发起连接请求
-	conn ,err := net.Dial("tcp","localhost:8088")
+	conn ,err := net.Dial("tcp","localhost:12900")
 	if err != nil{
 		fmt.Println("net.Dial err",err)
 		return
