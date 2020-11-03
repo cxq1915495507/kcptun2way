@@ -12,9 +12,9 @@ import (
 	//"github.com/xtaci/tcpraw"
 	//"kcp-go"
 	"fmt"
-	"io"
+	//"io"
 	"net"
-	"os"
+	//"os"
 	"strconv"
 	"strings"
 )
@@ -62,23 +62,8 @@ func dial(config *Config) (*net.UDPConn, uint32,error) {
 func dial2()  {
 
 
-
-	//2.提取文件的绝对路径  exp ：/home/sxf/hh
-	var filePath string
-	filePath = `/mnt/d/tl_98dx_torisetu_300.pdf`
-	//3.提取不包含路径的文件名 exp:hh
-	fileInfo ,err := os.Stat(`/mnt/d/tl_98dx_torisetu_300.pdf`)//fileInfo中包含文件名和文件大小
-	if err != nil{
-		fmt.Println("os.Stat err",err)
-		return
-	}
-	fileName :=fileInfo.Name() //文件名hh
-	fileSize :=fileInfo.Size() //文件大小
-	fmt.Println("文件名：",fileName)
-	fmt.Println("文件大小",fileSize)
-
 	//4.主动发起连接请求
-	conn ,err := net.Dial("tcp","127.0.0.1:8088")
+	conn ,err := net.Dial("tcp","localhost:8088")
 	if err != nil{
 		fmt.Println("net.Dial err",err)
 		return
@@ -86,7 +71,8 @@ func dial2()  {
 	defer conn.Close()
 
 	//5.发送文件名给接收端
-	conn.Write([]byte(fileName))
+	conn.Write([]byte("i love you"))
+	fmt.Println("client send: i love you")
 
 	//6.读取接收端回发的响应数据（ok）
 	buf := make([]byte,4096)
@@ -95,44 +81,16 @@ func dial2()  {
 		fmt.Println("conn.Read err",err)
 		return
 	}
+	fmt.Println(string(buf[:n]))
 
 	//7.判断这个数据是否是ok
 	if "ok" == string(buf[:n]){
 		//8.是ok，写文件内容给接收端--借助conn
-		sendcontent(conn,filePath)
+		conn.Write([]byte("really"))
+		fmt.Println("client send: really")
+
 	}
 
 
 }
 
-//发送文件内容给接受端
-func sendcontent(conn net.Conn,filePath string) {
-
-	//8.1只读打开文件
-	f, err := os.Open(filePath)
-	if err != nil {
-		fmt.Println("os.Open err", err)
-		return
-	}
-	defer f.Close()
-
-	//8.2从本地文件读数据，写给接收端
-	buf := make([]byte, 4096)
-	for {
-		n, err := f.Read(buf) //读取本地文件放入缓冲区buf中
-		if err != nil {
-			if err == io.EOF {
-				fmt.Println("读取文件完成")
-			} else {
-				fmt.Println("f.Read err", err)
-			}
-			return
-		}
-		_, err = conn.Write(buf[:n]) //将缓冲区buf中数据写到网络socket中
-		if err != nil {
-			fmt.Println("conn.Write err", err)
-			return
-		}
-	}
-
-}
