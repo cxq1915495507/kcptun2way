@@ -93,7 +93,7 @@ func main() {
 	myApp.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "localaddr,l",
-			Value: "localhost:8088",
+			Value: "localhost:12900",
 			Usage: "local listen address",
 		},
 		cli.StringFlag{
@@ -372,6 +372,7 @@ func main() {
 
 		createConn := func() (*smux.Session, error) {
 			conn2, id,err := dial(&config)
+			log.Println("kcp客户端发起连接请求")
 			kcpconn,err:=kcp.DialWithOptions(config.RemoteAddr, block, config.DataShard, config.ParityShard,conn2,id)
 			log.Println("客户端发起连接请求成功")
 			if err != nil {
