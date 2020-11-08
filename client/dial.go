@@ -1,62 +1,27 @@
 package main
 
 import (
-	//"crypto/rand"
-	//	"encoding/binary"
-	//"crypto/rand"
-	//"encoding/binary"
-	//"crypto/rand"
-	//"encoding/binary"
 	//"github.com/pkg/errors"
 	//kcp "github.com/xtaci/kcp-go/v5"
 	//"github.com/xtaci/tcpraw"
-	//"kcp-go"
+	"kcp-go"
 	"fmt"
-	//"io"
 	"net"
+	//"strings"
+
 	//"os"
-	"strconv"
-	"strings"
+	//"io"
+
+
 )
 
-func dial(config *Config) (*net.UDPConn, uint32,error) {
-        fmt.Printf("client dial")
-	udpaddr, err := net.ResolveUDPAddr("udp", config.RemoteAddr)
-	if err != nil {
-		return nil,0, err
-	}
-	network := "udp4"
-	if udpaddr.IP.To4() == nil {
-		network = "udp"
-	}
-
-	conn, err := net.ListenUDP(network, nil)
-	if err != nil {
-		return nil, 0,err
-	}
-	fmt.Printf("DialWithOptions")
-
-
-
-
-	_, err = conn.WriteToUDP([]byte("hello"),udpaddr)
-	fmt.Printf("dial:conn.Write")
-
-	message := make([]byte, 20)
-	rlen, remote, err := conn.ReadFromUDP(message[:])
+func dial(config *Config, block kcp.BlockCrypt) (*kcp.UDPSession, error) {
+	con,err:= kcp.DialWithOptions(config.RemoteAddr, block, config.DataShard, config.ParityShard)
 	if err != nil {
 		panic(err)
 	}
-
-	data := strings.TrimSpace(string(message[:rlen]))
-	fmt.Printf("received: %s from %s\n", data, remote)
-	idd, _ :=strconv.ParseUint(data[:5], 2, 32)
-	id:=uint32(idd)
-
-	return conn,id, nil
-
+	return con,nil
 }
-
 
 
 func dial2()  {
@@ -93,4 +58,3 @@ func dial2()  {
 
 
 }
-
