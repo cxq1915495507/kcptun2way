@@ -2,15 +2,16 @@ package main
 
 import (
 	"crypto/sha1"
+	//"encoding/binary"
 	"fmt"
 	"io"
-	kcp "kcp-go"
 	"log"
 	"math/rand"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	//"strings"
 	"sync"
 	"time"
 
@@ -23,6 +24,7 @@ import (
 	"github.com/xtaci/smux"
 	//"github.com/xtaci/tcpraw"
 )
+import "kcp-go"
 
 const (
 	// SALT is use for pbkdf2 key expansion
@@ -139,7 +141,7 @@ func main() {
 	myApp.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "listen,l",
-			Value: "127.0.0.1:12980",
+			Value: ":12980",
 			Usage: "kcp server listen address",
 		},
 		cli.StringFlag{
@@ -401,8 +403,8 @@ func main() {
 		if config.Pprof {
 			go http.ListenAndServe(":6060", nil)
 		}
-        go targetserver()
 		// main loop
+		go targetserver()
 		var wg sync.WaitGroup
 		loop := func(lis *kcp.Listener) {
 			defer wg.Done()
@@ -437,20 +439,9 @@ func main() {
 			}
 		}
 
-		if config.TCP { // tcp dual stack
-			if conn, err := listen(config.Listen); err == nil {
-				lis, err := kcp.ServeConn(block, config.DataShard, config.ParityShard, conn)
-				checkError(err)
-				wg.Add(1)
-				go loop(lis)
-			} else {
-				log.Println(err)
-			}
-		}
-
 		// udp stack
-		conn,err:=listen(config.Listen)
-		lis, err := kcp.ListenWithOptions( block, config.DataShard, config.ParityShard,conn)
+
+		lis, err := kcp.ListenWithOptions(config.Listen, block, config.DataShard, config.ParityShard)
 		checkError(err)
 		wg.Add(1)
 		go loop(lis)
