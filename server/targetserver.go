@@ -1,52 +1,9 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/binary"
 	"fmt"
-	"strings"
-
-	//kcp "kcp-go"
 	"net"
 )
-
-
-
-func listen(raddr string)(conn *net.UDPConn,err error) {
-	fmt.Printf("listen")
-
-	udpad, err := net.ResolveUDPAddr("udp", raddr)
-	if err != nil {
-		return nil, err
-	}
-	conn, err = net.ListenUDP("udp", udpad)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Printf("ListenWithOptions")
-
-	message := make([]byte, 20)
-	rlen, remote, err := conn.ReadFromUDP(message[:])
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("ReadFromUDP")
-
-
-	data := strings.TrimSpace(string(message[:rlen]))
-	fmt.Printf("received: %s from %s\n", data, remote)
-	if strings.Compare(data, "hello") == 0{
-		var convid uint32
-		binary.Read(rand.Reader, binary.LittleEndian, &convid)
-		_, err = conn.WriteToUDP([]byte("world"+string(convid)),remote)
-		return conn,nil
-	}else{
-		return nil,err
-	}
-	//return conn,nil
-}
-
-
 
 
 func targetserver()  {
