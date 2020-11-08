@@ -13,7 +13,7 @@ import (
 	"os"
 	//"sync"
 	"time"
-    kcp "kcp-go"
+
 	"golang.org/x/crypto/pbkdf2"
 
 	"github.com/pkg/errors"
@@ -22,6 +22,7 @@ import (
 	"github.com/xtaci/kcptun/generic"
 	"github.com/xtaci/smux"
 )
+import "kcp-go"
 
 const (
 	// SALT is use for pbkdf2 key expansion
@@ -93,12 +94,12 @@ func main() {
 	myApp.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "localaddr,l",
-			Value: "localhost:12900",
+			Value: "127.0.0.1:12900",
 			Usage: "local listen address",
 		},
 		cli.StringFlag{
 			Name:  "remoteaddr, r",
-			Value: "193.167.100.100:12980",
+			Value: "127.0.0.1:12980",
 			Usage: "kcp server address",
 		},
 		cli.StringFlag{
@@ -371,10 +372,7 @@ func main() {
 		}
 
 		createConn := func() (*smux.Session, error) {
-			conn2, id,err := dial(&config)
-			log.Println("kcp客户端发起连接请求")
-			kcpconn,err:=kcp.DialWithOptions(config.RemoteAddr, block, config.DataShard, config.ParityShard,conn2,id)
-			log.Println("客户端发起连接请求成功")
+			kcpconn, err := dial(&config, block)
 			if err != nil {
 				return nil, errors.Wrap(err, "dial()")
 			}
@@ -465,8 +463,8 @@ func main() {
 			go handleClient(muxes[idx].session, p1, config.Quiet)
 			rr++
 		}
-		go dial2()
-		log.Println("go dail2")
+		/*go dial2()
+		log.Println("go dail2")*/
 		return nil
 	}
 	myApp.Run(os.Args)
