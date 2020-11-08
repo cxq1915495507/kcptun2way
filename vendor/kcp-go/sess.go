@@ -12,7 +12,10 @@ import (
 	"encoding/binary"
 	"hash/crc32"
 	"io"
+	"log"
 	"net"
+	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -979,7 +982,7 @@ func (l *Listener) closeSession(remote net.Addr) (ret bool) {
 func (l *Listener) Addr() net.Addr { return l.conn.LocalAddr() }
 
 // Listen listens for incoming KCP packets addressed to the local address laddr on the network "udp",
-//func Listen(laddr string) (net.Listener, error) { return ListenWithOptions(laddr, nil, 0, 0) }
+func Listen(laddr string) (net.Listener, error) { return ListenWithOptions(laddr, nil, 0, 0) }
 
 // ListenWithOptions listens for incoming KCP packets addressed to the local address laddr on the network "udp" with packet encryption.
 //
@@ -988,9 +991,33 @@ func (l *Listener) Addr() net.Addr { return l.conn.LocalAddr() }
 // 'dataShards', 'parityShards' specify how many parity packets will be generated following the data packets.
 //
 // Check https://github.com/klauspost/reedsolomon for details
-func ListenWithOptions(block BlockCrypt, dataShards, parityShards int,conn *net.UDPConn) (*Listener, error) {
+func ListenWithOptions(laddr string, block BlockCrypt, dataShards, parityShards int) (*Listener, error) {
+	log.Println("listenwithoptions")
+
+	udpaddr, err := net.ResolveUDPAddr("udp", laddr)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	conn, err := net.ListenUDP("udp", udpaddr)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
 
 
+	message := make([]byte, 1024)
+	rlen, remote, err := conn.ReadFromUDP(message[:])
+	if err != nil {
+		panic(err)
+	}
+	data := strings.TrimSpace(string(message[:rlen]))
+	log.Println("received: %s from %s\n", data, remote)
+	if strings.Compare(data, "helloserver") == 0{
+		var convid uint32
+		_ = binary.Read(rand.Reader, binary.LittleEndian, &convid)
+		_, err = conn.WriteToUDP([]byte("helloclient"+string(convid)),remote)
+		//return serveConn(block, dataShards, parityShards, conn, true)
+	}
+	//return nil,nil
 	return serveConn(block, dataShards, parityShards, conn, true)
 }
 
@@ -1016,7 +1043,7 @@ func serveConn(block BlockCrypt, dataShards, parityShards int, conn net.PacketCo
 }
 
 // Dial connects to the remote address "raddr" on the network "udp" without encryption and FEC
-//func Dial(raddr string) (net.Conn, error) { return DialWithOptions(raddr, nil, 0, 0) }
+func Dial(raddr string) (net.Conn, error) { return DialWithOptions(raddr, nil, 0, 0) }
 
 // DialWithOptions connects to the remote address "raddr" on the network "udp" with packet encryption
 //
@@ -1025,15 +1052,47 @@ func serveConn(block BlockCrypt, dataShards, parityShards int, conn net.PacketCo
 // 'dataShards', 'parityShards' specify how many parity packets will be generated following the data packets.
 //
 // Check https://github.com/klauspost/reedsolomon for details
-func DialWithOptions(raddr string, block BlockCrypt, dataShards, parityShards int,conn *net.UDPConn,id uint32) (*UDPSession, error) {
+func DialWithOptions(raddr string, block BlockCrypt, dataShards, parityShards int) (*UDPSession, error) {
 	// network type detection
-	rada, err := net.ResolveUDPAddr("udp", raddr)
+	udpaddr, err := net.ResolveUDPAddr("udp", raddr)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-  /*  var convid uint32
-	binary.Read(rand.Reader, binary.LittleEndian, &convid)*/
-	return newUDPSession(id, dataShards, parityShards, nil, conn, true, rada, block), nil
+	log.Println(udpaddr)
+
+	network := "udp4"
+	if udpaddr.IP.To4() == nil {
+		network = "udp"
+	}
+
+	conn, err := net.ListenUDP(network, nil)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+ for{
+	_, err = conn.WriteToUDP([]byte("helloserver"),udpaddr)
+	 log.Println("conn.WriteToUDP([]byte(helloserver)")
+
+	 message := make([]byte, 20)
+	rlen, remote, err := conn.ReadFromUDP(message[:])
+	if err != nil {
+		panic(err)
+	}
+
+	data:= strings.TrimSpace(string(message[:rlen]))
+	log.Println("received: %s from %s\n", data, remote)
+	 if strings.Compare(data[0:11], "helloclient") == 0{
+		 idd, _ :=strconv.ParseUint(data[:11], 2, 32)
+		 log.Println(idd)
+		 convid:=uint32(idd)
+		return newUDPSession(convid, dataShards, parityShards, nil, conn, true, udpaddr, block), nil
+	}
+ }
+	return nil,nil
+	/*var convid uint32
+	binary.Read(rand.Reader, binary.LittleEndian, &convid)
+	return newUDPSession(convid, dataShards, parityShards, nil, conn, true, udpaddr, block), nil
+*/
 }
 
 // NewConn3 establishes a session and talks KCP protocol over a packet connection.
