@@ -94,12 +94,12 @@ func main() {
 	myApp.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "localaddr,l",
-			Value: "127.0.0.1:12900",
+			Value: ":12900",
 			Usage: "local listen address",
 		},
 		cli.StringFlag{
 			Name:  "remoteaddr, r",
-			Value: "127.0.0.1:12980",
+			Value: "193.167.100.100:12980",
 			Usage: "kcp server address",
 		},
 		cli.StringFlag{
