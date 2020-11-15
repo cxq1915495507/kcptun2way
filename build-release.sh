@@ -28,7 +28,7 @@ LDFLAGS="-X main.VERSION=$VERSION -s -w"
 GCFLAGS=""
 
 # AMD64 
-OSES=(linux darwin windows freebsd)
+OSES=(linux windows)
 for os in ${OSES[@]}; do
 	suffix=""
 	if [ "$os" == "windows" ]
