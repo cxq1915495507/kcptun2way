@@ -1,12 +1,15 @@
 package main
 
 import (
+	"io"
 	//"github.com/pkg/errors"
 	//kcp "github.com/xtaci/kcp-go/v5"
 	//"github.com/xtaci/tcpraw"
 	"kcp-go"
 	"fmt"
 	"net"
+	"os"
+
 	//"strings"
 
 	//"os"
@@ -36,25 +39,51 @@ func dial2()  {
 	defer conn.Close()
 
 	//5.发送文件名给接收端
-	conn.Write([]byte("i love you"))
-	fmt.Println("client send: i love you")
 
-	//6.读取接收端回发的响应数据（ok）
-	buf := make([]byte,4096)
+	buf := make([]byte, 4096)
 	n, err := conn.Read(buf)
-	if err != nil{
-		fmt.Println("conn.Read err",err)
+	if err != nil {
+		fmt.Printf("conn.Read() err:%v\n", err)
 		return
 	}
-	fmt.Println(string(buf[:n]))
+	fileName := string(buf[:n])
 
-	//7.判断这个数据是否是ok
-	if "ok" == string(buf[:n]){
-		//8.是ok，写文件内容给接收端--借助conn
-		conn.Write([]byte("really"))
-		fmt.Println("client send: really")
+	//回写ok给发送端
+	_, _ = conn.Write([]byte("ok"))
+
+
+	recivefil(conn,fileName)
+
+}
+func recivefil(conn net.Conn,fileName string) {
+
+	file, err := os.Create(fileName)
+	if err != nil {
+		fmt.Printf("os.Create() err:%v\n", err)
+		return
+	}
+	defer file.Close()
+
+	//从网络中读数据，写入本地文件
+	for {
+		buf := make([]byte, 4096)
+		n, err := conn.Read(buf)
+
+		//写入本地文件，读多少，写多少
+		file.Write(buf[:n])
+		if err != nil {
+			if err == io.EOF {
+				fmt.Printf("recieving finish\n")
+				fi,err:=os.Stat(fileName)
+				if err ==nil {
+					fmt.Println("file size is ",fi.Size(),"Bytes")
+				}
+			} else {
+				fmt.Printf("conn.Read() err:%v\n", err)
+			}
+			return
+		}
 
 	}
-
 
 }
