@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
+	"os"
 )
 
 
@@ -23,6 +25,8 @@ func targetserver()  {
 		return
 	}
 	defer conn.Close()//关闭socket
+	_, err = conn.Write([]byte("test"))
+
 
 	//3.从conn套接字中获取文件名，写入缓存buf中
 	buf := make([]byte,4096)
@@ -33,13 +37,28 @@ func targetserver()  {
 	}
 
 	//4.从buf中提取文件名
+	//5.回写给发送端ok
 
-	message := string(buf[:n])
+	if "ok" == string(buf[:n]) {
+		//8.是ok，写文件内容给接收端--借助conn
+		fmt.Println("server receive i love you")
+			fi, err := os.Open("test")
+			if err != nil {
+				fmt.Println("os.Open err", err)
+				return
+			}
+		buf := make([]byte,4096)
+		for{
+				n, err = fi.Read(buf)
+				if err == io.EOF {
+				fmt.Println("finish")
+				return
+					}
+				_, _ = conn.Write(buf[:n])
+			}
 
-	if n > 0 {
-		fmt.Println(message)
-	}	//5.回写给发送端ok
-	conn.Write([]byte("ok"))
+	}
+	_, _ = conn.Write([]byte("ok"))
 
 	//6.获取文件内容
 	recivefile(conn)
@@ -49,17 +68,20 @@ func recivefile(conn net.Conn)  {
 
 	//6.2从网络socket中读数据，写入本地文件中
 	buf := make([]byte,4096)
+	var count = 0
 
 	for  {
 
 		n,_ := conn.Read(buf) //从conn中读数据到buf中
+
 		if n == 0{  //判断是否读取数据完毕
-			fmt.Println("接收文件完毕")
+			fmt.Println("receiving finish: total bytes is")
+			fmt.Println(count)
 			return
 		}
 
 		//将buf中的数据写入到本地文件
-		conn.Write(buf[:n])
+       count =+n
 	}
 
 }
