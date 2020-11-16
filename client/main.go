@@ -372,6 +372,7 @@ func main() {
 		}
 
 		createConn := func() (*smux.Session, error) {
+			time.Sleep(5 * time.Second)
 			kcpconn, err := dial(&config, block)
 			if err != nil {
 				return nil, errors.Wrap(err, "dial()")
