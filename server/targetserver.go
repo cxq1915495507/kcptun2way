@@ -10,7 +10,7 @@ import (
 
 func targetserver()  {
 	//1.指定服务器通信协议、IP地址、Port端口，创建一个用于监听的socket---listener
-	listener ,err := net.Listen("tcp","127.0.0.1:8089")
+	listener ,err := net.Listen("tcp","localhost:8089")
 	if err != nil{
 		fmt.Println("net.Listener err:",err)
 		return
