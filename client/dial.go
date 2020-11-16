@@ -31,7 +31,7 @@ func dial2()  {
 
 
 	//4.主动发起连接请求
-	conn ,err := net.Dial("tcp","localhost:12900")
+	conn ,err := net.Dial("tcp","127.0.0.1:12900")
 	if err != nil{
 		fmt.Println("net.Dial err",err)
 		return
