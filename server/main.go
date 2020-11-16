@@ -141,7 +141,7 @@ func main() {
 	myApp.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "listen,l",
-			Value: ":12980",
+			Value: "127.0.0.1:12980",
 			Usage: "kcp server listen address",
 		},
 		cli.StringFlag{
