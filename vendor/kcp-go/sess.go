@@ -1069,7 +1069,7 @@ func DialWithOptions(raddr string, block BlockCrypt, dataShards, parityShards in
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
- for{
+
 	_, err = conn.WriteToUDP([]byte("helloserver"),udpaddr)
 	 log.Println("conn.WriteToUDP([]byte(helloserver)")
 
@@ -1084,15 +1084,14 @@ func DialWithOptions(raddr string, block BlockCrypt, dataShards, parityShards in
 	 if strings.Compare(data[0:11], "helloclient") == 0{
 		 idd, _ :=strconv.ParseUint(data[:11], 2, 32)
 		 log.Println(idd)
-		 convid:=uint32(idd)
-		return newUDPSession(convid, dataShards, parityShards, nil, conn, true, udpaddr, block), nil
+		 //convid:=uint32(idd)
+		//return newUDPSession(convid, dataShards, parityShards, nil, conn, true, udpaddr, block), nil
 	}
- }
-	return nil,nil
-	/*var convid uint32
+
+	//return nil,nil
+	var convid uint32
 	binary.Read(rand.Reader, binary.LittleEndian, &convid)
 	return newUDPSession(convid, dataShards, parityShards, nil, conn, true, udpaddr, block), nil
-*/
 }
 
 // NewConn3 establishes a session and talks KCP protocol over a packet connection.
