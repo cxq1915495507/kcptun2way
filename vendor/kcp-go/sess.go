@@ -14,8 +14,6 @@ import (
 	"io"
 	"log"
 	"net"
-	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -1003,20 +1001,6 @@ func ListenWithOptions(laddr string, block BlockCrypt, dataShards, parityShards 
 		return nil, errors.WithStack(err)
 	}
 
-
-	message := make([]byte, 1024)
-	rlen, remote, err := conn.ReadFromUDP(message[:])
-	if err != nil {
-		panic(err)
-	}
-	data := strings.TrimSpace(string(message[:rlen]))
-	log.Println("received: %s from %s\n", data, remote)
-	if strings.Compare(data, "helloserver") == 0{
-		var convid uint32
-		_ = binary.Read(rand.Reader, binary.LittleEndian, &convid)
-		_, err = conn.WriteToUDP([]byte("helloclient"+string(convid)),remote)
-		//return serveConn(block, dataShards, parityShards, conn, true)
-	}
 	//return nil,nil
 	return serveConn(block, dataShards, parityShards, conn, true)
 }
@@ -1070,23 +1054,7 @@ func DialWithOptions(raddr string, block BlockCrypt, dataShards, parityShards in
 		return nil, errors.WithStack(err)
 	}
 
-	_, err = conn.WriteToUDP([]byte("helloserver"),udpaddr)
-	 log.Println("conn.WriteToUDP([]byte(helloserver)")
-
-	 message := make([]byte, 20)
-	rlen, remote, err := conn.ReadFromUDP(message[:])
-	if err != nil {
-		panic(err)
-	}
-
-	data:= strings.TrimSpace(string(message[:rlen]))
-	log.Println("received: %s from %s\n", data, remote)
-	 if strings.Compare(data[0:11], "helloclient") == 0{
-		 idd, _ :=strconv.ParseUint(data[:11], 2, 32)
-		 log.Println(idd)
-		 //convid:=uint32(idd)
-		//return newUDPSession(convid, dataShards, parityShards, nil, conn, true, udpaddr, block), nil
-	}
+	
 
 	//return nil,nil
 	var convid uint32
