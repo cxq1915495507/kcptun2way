@@ -439,16 +439,6 @@ func main() {
 			}
 		}
 
-			if config.TCP { // tcp dual stack
-			if conn, err := tcpraw.Listen("tcp", config.Listen); err == nil {
-				lis, err := kcp.ServeConn(block, config.DataShard, config.ParityShard, conn)
-				checkError(err)
-				wg.Add(1)
-				go loop(lis)
-			} else {
-				log.Println(err)
-			}
-		}
 		
 		
 		
